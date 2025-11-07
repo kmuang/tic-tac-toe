@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tic Tac Toe</title> 
+<link rel="shortcut icon" href="img/logo.png" type="image/x-icon">
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
+
+<h1 class="text-3xl font-bold text-blue-700 mb-6 text-center">🌍 Tic Tac Toe - World Flags Edition</h1>
+
+<!-- Flag Selection -->
+<div id="setup" class="bg-white shadow-lg rounded-2xl p-6 flex flex-col items-center space-y-4">
+  <h2 class="text-xl font-semibold text-gray-800">Select Teams</h2>
+  <div class="flex space-x-6">
+    <div>
+      <p class="text-gray-600 text-center mb-1">Player 1</p>
+      <select id="player1" class="p-2 border rounded-lg">
+        <option value="🇫🇷">🇫🇷 France</option>
+        <option value="🇩🇪">🇩🇪 Germany</option>
+        <option value="🇪🇸">🇪🇸 Spain</option>
+        <option value="🇮🇹">🇮🇹 Italy</option>
+        <option value="🏴󠁧󠁢󠁥󠁮󠁧󠁿">🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</option>
+        <option value="🇺🇸">🇺🇸 USA</option>
+        <option value="🇨🇦">🇨🇦 Canada</option>
+        <option value="🇧🇷">🇧🇷 Brazil</option>
+      </select>
+    </div>
+    <div>
+      <p class="text-gray-600 text-center mb-1">Player 2</p>
+      <select id="player2" class="p-2 border rounded-lg">
+        <option value="🇩🇪">🇩🇪 Germany</option>
+        <option value="🇫🇷">🇫🇷 France</option>
+        <option value="🇪🇸">🇪🇸 Spain</option>
+        <option value="🇮🇹">🇮🇹 Italy</option>
+        <option value="🏴󠁧󠁢󠁥󠁮󠁧󠁿">🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</option>
+        <option value="🇺🇸">🇺🇸 USA</option>
+        <option value="🇨🇦">🇨🇦 Canada</option>
+        <option value="🇧🇷">🇧🇷 Brazil</option>
+      </select>
+    </div>
+  </div>
+  <button id="startGame" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Start Game</button>
+</div>
+
+<!-- Game Board -->
+<div id="game" class="hidden flex flex-col items-center mt-8">
+  <h2 id="turn" class="text-xl font-semibold text-gray-800 mb-4"></h2>
+
+  <div class="grid grid-cols-3 gap-2 w-72 h-72 mb-4" id="board">
+    <!-- 9 cells -->
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="0"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="1"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="2"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="3"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="4"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="5"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="6"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="7"></div>
+    <div class="bg-white rounded-lg flex items-center justify-center text-5xl cursor-pointer hover:bg-gray-200 transition" data-index="8"></div>
+  </div>
+
+  <p id="message" class="text-lg text-gray-700 mb-3"></p>
+  <button id="restart" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Restart Game</button>
+</div>
+
+<script>
+let board = Array(9).fill("");
+let player1Flag = "🇫🇷";
+let player2Flag = "🇩🇪";
+let currentPlayer = player1Flag;
+let gameActive = false;
+
+const winningConditions = [
+  [0,1,2], [3,4,5], [6,7,8],
+  [0,3,6], [1,4,7], [2,5,8],
+  [0,4,8], [2,4,6]
+];
+
+const boardCells = document.querySelectorAll("#board div");
+const turnDisplay = document.getElementById("turn");
+const message = document.getElementById("message");
+
+// Start Game
+document.getElementById("startGame").addEventListener("click", () => {
+  const p1 = document.getElementById("player1").value;
+  const p2 = document.getElementById("player2").value;
+  
+  if (p1 === p2) {
+    alert("Please choose different flags for each player!");
+    return;
+  }
+
+  player1Flag = p1;
+  player2Flag = p2;
+  currentPlayer = player1Flag;
+  gameActive = true;
+  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  turnDisplay.textContent = `${currentPlayer}'s Turn`;
+});
+
+// Cell Click
+boardCells.forEach(cell => {
+  cell.addEventListener("click", e => {
+    const index = e.target.dataset.index;
+    if (!gameActive || board[index] !== "") return;
+
+    board[index] = currentPlayer;
+    e.target.textContent = currentPlayer;
+
+    checkResult();
+  });
+});
+
+function checkResult() {
+  let won = false;
+  for (let combo of winningConditions) {
+    const [a, b, c] = combo;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      highlight(combo);
+      won = true;
+      break;
+    }
+  }
+
+  if (won) {
+    message.textContent = `🏆 ${currentPlayer} Wins!`;
+    turnDisplay.textContent = "";
+    gameActive = false;
+    return;
+  }
+
+  if (!board.includes("")) {
+    message.textContent = "🤝 It's a Draw!";
+    turnDisplay.textContent = "";
+    gameActive = false;
+    return;
+  }
+
+  currentPlayer = currentPlayer === player1Flag ? player2Flag : player1Flag;
+  turnDisplay.textContent = `${currentPlayer}'s Turn`;
+}
+
+function highlight(combo) {
+  combo.forEach(i => boardCells[i].classList.add("bg-green-400", "text-white"));
+}
+
+// Restart
+document.getElementById("restart").addEventListener("click", () => {
+  board = Array(9).fill("");
+  boardCells.forEach(c => {
+    c.textContent = "";
+    c.classList.remove("bg-green-400", "text-white");
+  });
+  currentPlayer = player1Flag;
+  message.textContent = "";
+  gameActive = true;
+  turnDisplay.textContent = `${currentPlayer}'s Turn`;
+});
+</script>
+
+</body>
+</html>
